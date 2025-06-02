@@ -10,10 +10,10 @@ use App\Models\SettingModel;
 
 class Home extends BaseController
 {
-    protected $serviceModel;
-    protected $testimonialModel;
-    protected $faqModel;
-    protected $blogPostModel;
+    protected ServiceModel $serviceModel;
+    protected TestimonialModel $testimonialModel;
+    protected FaqModel $faqModel;
+    protected BlogPostModel $blogPostModel;
     protected $settingModel;
 
     public function __construct()
@@ -206,7 +206,7 @@ class Home extends BaseController
             'experience' => '8+ Tahun',
             'customers' => $totalCustomers > 0 ? $totalCustomers . '+' : '1000+',
             'satisfaction' => isset($avgRating['avg_rating']) ? round($avgRating['avg_rating'] * 20) . '%' : '98%', // Convert 5-star to percentage
-            'warranty' => '3 Bulan'
+            'warranty' => '1 Bulan'
         ];
     }
 
