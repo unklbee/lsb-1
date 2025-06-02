@@ -27,7 +27,7 @@ class UserModel extends Model
         return $this->where('is_active', 1)->findAll();
     }
 
-    public function authenticate($username, $password)
+    public function authenticate($username, $password): object|bool|array|null
     {
         $user = $this->where('username', $username)
             ->orWhere('email', $username)
@@ -43,12 +43,12 @@ class UserModel extends Model
         return false;
     }
 
-    public function updateLastLogin($id)
+    public function updateLastLogin($id): bool
     {
         return $this->update($id, ['last_login' => date('Y-m-d H:i:s')]);
     }
 
-    protected function hashPassword(array $data)
+    protected function hashPassword(array $data): array
     {
         if (isset($data['data']['password'])) {
             $data['data']['password'] = password_hash($data['data']['password'], PASSWORD_DEFAULT);

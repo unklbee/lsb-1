@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\BlogPostModel;
 use App\Models\BlogCategoryModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Blog extends BaseController
 {
@@ -12,7 +13,7 @@ class Blog extends BaseController
 
     public function __construct()
     {
-//        parent::__construct();
+        //parent::__construct();
         $this->blogPostModel = new BlogPostModel();
         $this->blogCategoryModel = new BlogCategoryModel();
     }
@@ -38,6 +39,27 @@ class Blog extends BaseController
         $totalPosts = $this->blogPostModel->where('is_published', 1)->countAllResults();
         $totalPages = ceil($totalPosts / $perPage);
 
+        // Format posts data untuk view (normalize field names)
+        $formattedPosts = [];
+        foreach ($posts as $post) {
+            $formattedPosts[] = [
+                'id' => $post['id'],
+                'title' => $post['title'],
+                'slug' => $post['slug'],
+                'excerpt' => $post['excerpt'],
+                'content' => $post['content'] ?? '',
+                'featured_image' => $post['featured_image'] ?? base_url('assets/images/blog-default.jpg'),
+                'author' => $post['author'],
+                'reading_time' => $post['reading_time'],
+                'published_date' => $post['published_at'] ?? $post['created_at'],
+                'updated_date' => $post['updated_at'],
+                'category' => $post['category_slug'] ?? '',
+                'category_name' => $post['category_name'] ?? '',
+                'featured' => (bool)($post['is_featured'] ?? 0), // Normalize field name
+                'views' => $post['view_count'] ?? 0
+            ];
+        }
+
         // Get categories from database
         $categoriesData = $this->blogCategoryModel->getActiveCategories();
         $categories = [];
@@ -58,7 +80,7 @@ class Blog extends BaseController
 
         $data = [
             'seo' => $seoData,
-            'posts' => $posts,
+            'posts' => $formattedPosts, // Use formatted posts
             'categories' => $categories,
             'globalSeo' => $this->globalSettings,
             'navigation' => $this->getNavigationData('blog'),
@@ -76,12 +98,12 @@ class Blog extends BaseController
         return view('blog/index', $data);
     }
 
-    public function detail($slug)
+    public function detail($slug): string
     {
         $post = $this->blogPostModel->getBySlug($slug);
 
         if (!$post) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('Artikel tidak ditemukan');
+            throw new PageNotFoundException('Artikel tidak ditemukan');
         }
 
         $seoData = [
@@ -120,7 +142,7 @@ class Blog extends BaseController
         $category = $this->blogCategoryModel->getBySlug($categorySlug);
 
         if (!$category) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('Kategori tidak ditemukan');
+            throw new PageNotFoundException('Kategori tidak ditemukan');
         }
 
         // Get posts by category with pagination

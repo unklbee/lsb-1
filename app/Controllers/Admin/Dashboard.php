@@ -33,6 +33,7 @@ class Dashboard extends BaseController
         $recentMessages = $contactModel->orderBy('created_at', 'DESC')->limit(5)->findAll();
         $recentTestimonials = $testimonialModel->where('is_published', 1)->orderBy('created_at', 'DESC')->limit(5)->findAll();
 
+
         $data = [
             'title' => 'Dashboard Admin',
             'stats' => $stats,
@@ -42,7 +43,7 @@ class Dashboard extends BaseController
             'user' => session()->get('admin_user')
         ];
 
-        return view('admin/dashboard', $data);
+        return view('admin/dashboard/index', $data);
     }
 
     private function checkAuth()

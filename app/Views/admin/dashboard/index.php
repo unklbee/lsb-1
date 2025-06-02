@@ -201,12 +201,12 @@
                         <p class="font-medium text-gray-900 mb-1"><?= $post['title'] ?></p>
                         <div class="flex items-center text-sm text-gray-500">
                             <i class="fas fa-calendar mr-1"></i>
-                            <?= date('d M Y', strtotime($post['date'])) ?>
+                            <?= date('d M Y', strtotime($post['created_at'])) ?>
                             <span class="mx-2">•</span>
-                            <span class="px-2 py-1 text-xs rounded-full <?= $post['status'] == 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' ?>">
-                            <?= ucfirst($post['status']) ?>
+                            <span class="px-2 py-1 text-xs rounded-full <?= $post['is_published'] == 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' ?>">
+                            <?= ucfirst($post['is_published']) ?>
                         </span>
-                            <?php if ($post['status'] == 'published'): ?>
+                            <?php if ($post['is_published'] == 'published'): ?>
                                 <span class="mx-2">•</span>
                                 <i class="fas fa-eye mr-1"></i>
                                 <?= $post['views'] ?> views

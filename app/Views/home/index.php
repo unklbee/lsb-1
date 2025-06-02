@@ -205,7 +205,7 @@
                         <h3 class="text-xl font-bold text-gray-900 mb-3"><?= $service['name'] ?></h3>
                         <p class="text-gray-600 mb-4 leading-relaxed"><?= $service['description'] ?></p>
                         <div class="text-blue-600 font-semibold text-lg mb-4"><?= $service['price_start'] ?></div>
-                        <a href="/layanan/<?= url_title(strtolower($service['name']), '-', true) ?>"
+                        <a href="/layanan/<?= url_title(strtolower($service['slug']), '-', true) ?>"
                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-300 inline-block">
                             Detail Layanan
                         </a>

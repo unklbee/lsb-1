@@ -39,7 +39,7 @@ $routes->post('/kontak/send', 'Contact::send');
 $routes->group('admin', function($routes) {
     // Auth Routes
     $routes->get('login', 'Admin\Auth::login');
-    $routes->post('auth/login', 'Admin\Auth::authenticate');
+    $routes->post('auth/login','Admin\Auth::authenticate');
     $routes->get('logout', 'Admin\Auth::logout');
 
     // Dashboard
@@ -167,4 +167,4 @@ $routes->get('sitemap.xml', 'Sitemap::index');
 $routes->get('robots.txt', 'Robots::index');
 
 // Catch-all untuk dynamic pages (harus di paling bawah)
-$routes->get('(:segment)', 'Pages::show/$1');
+//$routes->get('(:segment)', 'Pages::show/$1');
