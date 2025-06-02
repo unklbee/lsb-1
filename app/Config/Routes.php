@@ -23,7 +23,12 @@ $routes->get('/blog/sitemap', 'Blog::sitemap');
 $routes->get('/blog/(:segment)', 'Blog::detail/$1');
 
 // FAQ Routes
-$routes->get('/faq', 'Faq::index');
+$routes->get('/faq', 'FAQ::index');
+$routes->get('/faq/category/(:segment)', 'FAQ::category/$1');
+$routes->get('/faq/search', 'FAQ::search');
+$routes->get('/faq/popular', 'FAQ::popular');
+$routes->post('/faq/increment-view/(:num)', 'FAQ::incrementView/$1');
+$routes->post('/faq/submit-question', 'FAQ::submitQuestion');
 
 // Testimonial Routes
 $routes->get('/testimonial', 'Testimonial::index');
@@ -150,8 +155,9 @@ $routes->group('api/v1', function($routes) {
     $routes->get('testimonials/featured', 'Api\Testimonials::featured');
 
     // FAQs API
-    $routes->get('faqs', 'Api\Faqs::index');
-    $routes->get('faqs/category/(:segment)', 'Api\Faqs::byCategory/$1');
+    $routes->get('faqs', 'FAQ::getFaqsJson');
+    $routes->get('faqs/categories', 'FAQ::getCategoriesJson');
+    $routes->get('faqs/category/(:segment)', 'FAQ::getFaqsJson/$1');
 
     // Contact API
     $routes->post('contact', 'Api\Contact::send');

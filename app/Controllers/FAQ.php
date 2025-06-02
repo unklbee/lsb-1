@@ -2,9 +2,22 @@
 
 namespace App\Controllers;
 
-class Faq extends BaseController
+use App\Models\FaqModel;
+use App\Models\FaqCategoryModel;
+use CodeIgniter\HTTP\RedirectResponse;
+
+class FAQ extends BaseController
 {
-    public function index()
+    protected FaqModel $faqModel;
+    protected FaqCategoryModel $faqCategoryModel;
+
+    public function __construct()
+    {
+        $this->faqModel = new FaqModel();
+        $this->faqCategoryModel = new FaqCategoryModel();
+    }
+
+    public function index(): string
     {
         $seoData = [
             'title' => 'FAQ Service Laptop Bandung - Pertanyaan yang Sering Diajukan',
@@ -16,221 +29,14 @@ class Faq extends BaseController
             'og_image' => base_url('assets/images/faq-service-laptop-bandung.jpg')
         ];
 
-        $faqCategories = [
-            'umum' => [
-                'title' => 'Pertanyaan Umum',
-                'faqs' => [
-                    [
-                        'question' => 'Berapa lama waktu service laptop di Bandung?',
-                        'answer' => 'Waktu service bervariasi tergantung jenis kerusakan:<br>
-                        • Service ringan (cleaning, instalasi): 1-2 hari<br>
-                        • Ganti komponen (layar, keyboard): 2-3 hari<br>
-                        • Perbaikan motherboard: 3-7 hari<br>
-                        • Tergantung ketersediaan spare part'
-                    ],
-                    [
-                        'question' => 'Apakah ada garansi untuk service laptop?',
-                        'answer' => 'Ya, kami memberikan garansi resmi untuk setiap perbaikan:<br>
-                        • Garansi workmanship: 1-3 bulan<br>
-                        • Garansi spare part: sesuai garansi distributor<br>
-                        • Garansi tidak berlaku untuk kerusakan akibat benturan atau cairan'
-                    ],
-                    [
-                        'question' => 'Berapa biaya diagnosa laptop?',
-                        'answer' => 'Diagnosa awal GRATIS untuk semua pelanggan. Kami akan memberikan estimasi biaya yang transparan sebelum melakukan perbaikan. Tidak ada biaya tersembunyi.'
-                    ],
-                    [
-                        'question' => 'Merk laptop apa saja yang bisa diservice?',
-                        'answer' => 'Kami melayani service semua merk laptop:<br>
-                        • ASUS, Acer, HP, Dell, Lenovo<br>
-                        • Toshiba, MSI, Gigabyte<br>
-                        • Apple MacBook (terbatas)<br>
-                        • Merk lainnya dengan spare part tersedia'
-                    ],
-                    [
-                        'question' => 'Apakah melayani panggilan ke rumah?',
-                        'answer' => 'Ya, kami melayani service panggilan untuk area Bandung dan sekitarnya:<br>
-                        • Biaya transportasi minimal Rp 25.000<br>
-                        • Gratis ongkir untuk service di atas Rp 500.000<br>
-                        • Jadwal fleksibel sesuai kebutuhan'
-                    ]
-                ]
-            ],
-            'service-laptop' => [
-                'title' => 'Service Laptop',
-                'faqs' => [
-                    [
-                        'question' => 'Laptop saya tidak mau nyala, apa penyebabnya?',
-                        'answer' => 'Laptop tidak nyala bisa disebabkan beberapa faktor:<br>
-                        • Adapter atau battery bermasalah<br>
-                        • Motherboard rusak<br>
-                        • RAM tidak terpasang dengan baik<br>
-                        • Short circuit akibat cairan<br>
-                        Perlu diagnosa lebih lanjut untuk memastikan penyebab pasti.'
-                    ],
-                    [
-                        'question' => 'Layar laptop bergaris, bisa diperbaiki?',
-                        'answer' => 'Layar bergaris umumnya disebabkan:<br>
-                        • LCD panel rusak - perlu ganti layar<br>
-                        • Kabel flexible bermasalah - bisa diperbaiki<br>
-                        • VGA card rusak - perlu service motherboard<br>
-                        Tim teknisi akan diagnosa untuk solusi terbaik.'
-                    ],
-                    [
-                        'question' => 'Laptop sering hang dan lambat, kenapa?',
-                        'answer' => 'Penyebab laptop lambat dan hang:<br>
-                        • Harddisk bad sector atau penuh<br>
-                        • RAM tidak mencukupi<br>
-                        • Overheat karena debu<br>
-                        • Virus atau malware<br>
-                        • Sistem operasi corrupt<br>
-                        Solusi: cleaning, upgrade hardware, atau instalasi ulang.'
-                    ],
-                    [
-                        'question' => 'Keyboard laptop tidak berfungsi sebagian?',
-                        'answer' => 'Masalah keyboard laptop:<br>
-                        • Kotoran di bawah tombol - bisa dibersihkan<br>
-                        • Flexible keyboard putus - perlu ganti<br>
-                        • Kerusakan board keyboard - perlu replacement<br>
-                        • Setting keyboard berubah - tinggal reset<br>
-                        Diagnosa akan menentukan solusi yang tepat.'
-                    ]
-                ]
-            ],
-            'upgrade-hardware' => [
-                'title' => 'Upgrade Hardware',
-                'faqs' => [
-                    [
-                        'question' => 'RAM berapa GB yang cocok untuk laptop saya?',
-                        'answer' => 'Rekomendasi kapasitas RAM:<br>
-                        • 4GB: Untuk pemakaian ringan (browsing, office)<br>
-                        • 8GB: Multitasking dan aplikasi sedang<br>
-                        • 16GB: Gaming, editing video, programming<br>
-                        • 32GB+: Workstation, rendering, virtualization<br>
-                        Konsultasi gratis untuk menentukan kebutuhan optimal.'
-                    ],
-                    [
-                        'question' => 'Upgrade SSD apakah membuat laptop lebih cepat?',
-                        'answer' => 'Ya, upgrade ke SSD memberikan peningkatan signifikan:<br>
-                        • Boot time 5-10x lebih cepat<br>
-                        • Loading aplikasi instant<br>
-                        • Transfer file lebih cepat<br>
-                        • Laptop lebih responsif overall<br>
-                        • Hemat battery dan tidak berisik'
-                    ],
-                    [
-                        'question' => 'Bisa upgrade processor laptop?',
-                        'answer' => 'Upgrade processor laptop sangat terbatas:<br>
-                        • Kebanyakan laptop: processor soldered (tidak bisa)<br>
-                        • Laptop lama tertentu: bisa upgrade terbatas<br>
-                        • Lebih efektif upgrade RAM dan SSD<br>
-                        • Konsultasi untuk cek kompatibilitas laptop Anda'
-                    ],
-                    [
-                        'question' => 'Harddisk laptop bisa ditambah?',
-                        'answer' => 'Penambahan storage laptop:<br>
-                        • Ganti HDD dengan SSD kapasitas lebih besar<br>
-                        • Tambah M.2 SSD jika ada slot kosong<br>
-                        • External HDD/SSD untuk storage tambahan<br>
-                        • Cloud storage untuk backup otomatis<br>
-                        Tim akan cek slot available di laptop Anda.'
-                    ]
-                ]
-            ],
-            'data-recovery' => [
-                'title' => 'Data Recovery',
-                'faqs' => [
-                    [
-                        'question' => 'Berapa persen kemungkinan data bisa diselamatkan?',
-                        'answer' => 'Tingkat keberhasilan recovery data:<br>
-                        • Logical damage (delete, format): 85-95%<br>
-                        • Physical damage ringan: 70-85%<br>
-                        • Physical damage berat: 40-70%<br>
-                        • Head crash, fire damage: 10-40%<br>
-                        Analisa gratis untuk estimasi akurat.'
-                    ],
-                    [
-                        'question' => 'Harddisk bunyi klik-klik, masih bisa recovery?',
-                        'answer' => 'Bunyi klik-klik menandakan head crash:<br>
-                        • Tingkat kesulitan tinggi<br>
-                        • Perlu tools khusus dan cleanroom<br>
-                        • Biaya recovery lebih mahal<br>
-                        • Kemungkinan berhasil 20-60%<br>
-                        • Jangan dinyalakan lagi untuk mencegah kerusakan lebih parah'
-                    ],
-                    [
-                        'question' => 'Berapa lama proses data recovery?',
-                        'answer' => 'Waktu recovery data bervariasi:<br>
-                        • Logical recovery: 1-3 hari<br>
-                        • Physical recovery ringan: 3-7 hari<br>
-                        • Physical recovery berat: 1-2 minggu<br>
-                        • Tergantung kapasitas dan tingkat kerusakan<br>
-                        Update progress akan diberikan secara berkala.'
-                    ],
-                    [
-                        'question' => 'Apakah data recovery bisa dilakukan sendiri?',
-                        'answer' => 'Recovery mandiri berisiko tinggi:<br>
-                        • Software recovery: bisa dicoba untuk logical damage<br>
-                        • Physical damage: TIDAK disarankan<br>
-                        • Bisa memperparah kerusakan<br>
-                        • Mengurangi chance recovery profesional<br>
-                        Konsultasi dulu dengan teknisi untuk saran terbaik.'
-                    ]
-                ]
-            ],
-            'harga-garansi' => [
-                'title' => 'Harga & Garansi',
-                'faqs' => [
-                    [
-                        'question' => 'Bagaimana sistem pembayaran service laptop?',
-                        'answer' => 'Sistem pembayaran fleksibel:<br>
-                        • DP 50% saat serahkan laptop<br>
-                        • Pelunasan saat ambil laptop<br>
-                        • Cash, transfer bank, e-wallet<br>
-                        • Cicilan tersedia untuk service > Rp 1juta<br>
-                        • Invoice resmi untuk semua transaksi'
-                    ],
-                    [
-                        'question' => 'Apa saja yang termasuk dalam garansi service?',
-                        'answer' => 'Garansi service mencakup:<br>
-                        • Workmanship/pengerjaan teknisi<br>
-                        • Spare part yang diganti<br>
-                        • Tidak termasuk: liquid damage, impact damage<br>
-                        • Garansi void jika dibuka di tempat lain<br>
-                        • Klaim garansi dengan nota service'
-                    ],
-                    [
-                        'question' => 'Apakah ada diskon untuk pelanggan setia?',
-                        'answer' => 'Program loyalitas untuk pelanggan:<br>
-                        • Diskon 10% untuk service ke-3 dan seterusnya<br>
-                        • Promo khusus di hari besar<br>
-                        • Maintenance package dengan harga spesial<br>
-                        • Prioritas service untuk member<br>
-                        • Konsultasi gratis selamanya'
-                    ]
-                ]
-            ]
-        ];
+        // Get FAQ categories with their FAQs
+        $faqCategories = $this->getFaqCategoriesWithQuestions();
 
         $data = [
             'seo' => $seoData,
             'faqCategories' => $faqCategories,
-            'globalSeo' => [
-                'site_name' => 'LaptopService Bandung',
-                'business_name' => 'CV. Teknologi Solusi Digital',
-                'phone' => '+62-22-1234-5678',
-                'whatsapp' => '+62-812-3456-7890',
-                'email' => 'info@laptopservicebandung.com'
-            ],
-            'navigation' => [
-                ['title' => 'Beranda', 'url' => '/', 'active' => false],
-                ['title' => 'Layanan', 'url' => '/layanan', 'active' => false],
-                ['title' => 'Blog', 'url' => '/blog', 'active' => false],
-                ['title' => 'FAQ', 'url' => '/faq', 'active' => true],
-                ['title' => 'Testimonial', 'url' => '/testimonial', 'active' => false],
-                ['title' => 'Tentang Kami', 'url' => '/tentang-kami', 'active' => false],
-                ['title' => 'Kontak', 'url' => '/kontak', 'active' => false]
-            ],
+            'globalSeo' => $this->globalSettings,
+            'navigation' => $this->getNavigationData('faq'),
             'breadcrumbs' => [
                 ['name' => 'Beranda', 'url' => base_url()],
                 ['name' => 'FAQ', 'url' => base_url('/faq')]
@@ -238,5 +44,330 @@ class Faq extends BaseController
         ];
 
         return view('faq/index', $data);
+    }
+
+    /**
+     * Get FAQ categories with their questions from database
+     */
+    private function getFaqCategoriesWithQuestions(): array
+    {
+        // Get active categories
+        $categories = $this->faqCategoryModel->getActiveCategories();
+
+        if (empty($categories)) {
+            // If no categories exist, return sample data or empty array
+            return $this->getSampleFaqData();
+        }
+
+        $faqCategories = [];
+
+        foreach ($categories as $category) {
+            // Get FAQs for this category
+            $faqs = $this->faqModel->getByCategory($category['id']);
+
+            // Only include categories that have FAQs
+            if (!empty($faqs)) {
+                $faqCategories[$category['slug']] = [
+                    'title' => $category['name'],
+                    'description' => $category['description'] ?? '',
+                    'faqs' => $faqs
+                ];
+            }
+        }
+
+        // If no categories with FAQs exist, return sample data
+        if (empty($faqCategories)) {
+            return $this->getSampleFaqData();
+        }
+
+        return $faqCategories;
+    }
+
+    /**
+     * Get FAQ by category slug
+     */
+    public function category($categorySlug = null): string|RedirectResponse
+    {
+        if (!$categorySlug) {
+            return redirect()->to('/faq');
+        }
+
+        // Get category info
+        $category = $this->faqCategoryModel->where('slug', $categorySlug)
+            ->where('is_active', 1)
+            ->first();
+
+        if (!$category) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Kategori FAQ tidak ditemukan');
+        }
+
+        // Get FAQs for this category
+        $faqs = $this->faqModel->getByCategory($category['id']);
+
+        $seoData = [
+            'title' => $category['name'] . ' - FAQ Service Laptop Bandung',
+            'description' => $category['description'] ?: 'FAQ ' . $category['name'] . ' service laptop dan komputer di Bandung.',
+            'keywords' => 'faq ' . strtolower($category['name']) . ', service laptop bandung',
+            'canonical' => base_url('/faq/category/' . $categorySlug),
+            'og_title' => $category['name'] . ' - FAQ Service Laptop Bandung',
+            'og_description' => $category['description'] ?: $category['name'],
+            'og_image' => base_url('assets/images/faq-' . $categorySlug . '.jpg')
+        ];
+
+        $data = [
+            'seo' => $seoData,
+            'category' => $category,
+            'faqs' => $faqs,
+            'globalSeo' => $this->globalSettings,
+            'navigation' => $this->getNavigationData('faq'),
+            'breadcrumbs' => [
+                ['name' => 'Beranda', 'url' => base_url()],
+                ['name' => 'FAQ', 'url' => base_url('/faq')],
+                ['name' => $category['name'], 'url' => base_url('/faq/category/' . $categorySlug)]
+            ]
+        ];
+
+        return view('faq/category', $data);
+    }
+
+    /**
+     * Search FAQs
+     */
+    public function search()
+    {
+        $query = $this->request->getGet('q');
+
+        if (empty($query) || strlen(trim($query)) < 3) {
+            return redirect()->to('/faq')->with('error', 'Kata kunci pencarian minimal 3 karakter');
+        }
+
+        // Search in questions and answers
+        $searchResults = $this->searchFaqs($query);
+
+        $seoData = [
+            'title' => 'Hasil Pencarian FAQ: "' . $query . '" - Service Laptop Bandung',
+            'description' => 'Hasil pencarian FAQ untuk "' . $query . '" seputar service laptop dan komputer di Bandung.',
+            'keywords' => 'search faq, ' . $query . ', service laptop bandung',
+            'canonical' => base_url('/faq/search?q=' . urlencode($query)),
+            'og_title' => 'Pencarian FAQ: ' . $query,
+            'og_description' => 'Hasil pencarian FAQ untuk "' . $query . '"',
+            'og_image' => base_url('assets/images/faq-search.jpg')
+        ];
+
+        $data = [
+            'seo' => $seoData,
+            'query' => $query,
+            'searchResults' => $searchResults,
+            'totalResults' => count($searchResults),
+            'globalSeo' => $this->globalSettings,
+            'navigation' => $this->getNavigationData('faq'),
+            'breadcrumbs' => [
+                ['name' => 'Beranda', 'url' => base_url()],
+                ['name' => 'FAQ', 'url' => base_url('/faq')],
+                ['name' => 'Pencarian: ' . $query, 'url' => '']
+            ]
+        ];
+
+        return view('faq/search', $data);
+    }
+
+    /**
+     * Search FAQs in questions and answers
+     */
+    private function searchFaqs($query): array
+    {
+        return $this->faqModel->select('faqs.*, faq_categories.name as category_name, faq_categories.slug as category_slug')
+            ->join('faq_categories', 'faq_categories.id = faqs.category_id', 'left')
+            ->where('faqs.is_active', 1)
+            ->groupStart()
+            ->like('faqs.question', $query)
+            ->orLike('faqs.answer', $query)
+            ->groupEnd()
+            ->orderBy('faqs.view_count', 'DESC')
+            ->findAll();
+    }
+
+    /**
+     * Get popular FAQs
+     */
+    public function popular()
+    {
+        $popularFaqs = $this->faqModel->getPopularFaqs(20);
+
+        $seoData = [
+            'title' => 'FAQ Populer - Service Laptop Bandung',
+            'description' => 'Kumpulan pertanyaan yang paling sering ditanyakan seputar service laptop dan komputer di Bandung.',
+            'keywords' => 'faq populer, pertanyaan populer service laptop bandung',
+            'canonical' => base_url('/faq/popular'),
+            'og_title' => 'FAQ Populer Service Laptop Bandung',
+            'og_description' => 'Pertanyaan yang paling sering ditanyakan tentang service laptop',
+            'og_image' => base_url('assets/images/faq-popular.jpg')
+        ];
+
+        $data = [
+            'seo' => $seoData,
+            'popularFaqs' => $popularFaqs,
+            'globalSeo' => $this->globalSettings,
+            'navigation' => $this->getNavigationData('faq'),
+            'breadcrumbs' => [
+                ['name' => 'Beranda', 'url' => base_url()],
+                ['name' => 'FAQ', 'url' => base_url('/faq')],
+                ['name' => 'FAQ Populer', 'url' => base_url('/faq/popular')]
+            ]
+        ];
+
+        return view('faq/popular', $data);
+    }
+
+    /**
+     * Increment FAQ view count (AJAX)
+     */
+    public function incrementView($id)
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(404);
+        }
+
+        $result = $this->faqModel->incrementViewCount($id);
+
+        return $this->response->setJSON([
+            'status' => $result ? 'success' : 'error',
+            'message' => $result ? 'View count updated' : 'Failed to update view count'
+        ]);
+    }
+
+    /**
+     * API endpoint to get FAQs by category
+     */
+    public function getFaqsJson($categorySlug = null)
+    {
+        if ($categorySlug) {
+            $category = $this->faqCategoryModel->where('slug', $categorySlug)
+                ->where('is_active', 1)
+                ->first();
+
+            if (!$category) {
+                return $this->response->setStatusCode(404)
+                    ->setJSON(['error' => 'Category not found']);
+            }
+
+            $faqs = $this->faqModel->getByCategory($category['id']);
+        } else {
+            $faqs = $this->faqModel->getActiveFaqs();
+        }
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'data' => $faqs
+        ]);
+    }
+
+    /**
+     * API endpoint to get FAQ categories
+     */
+    public function getCategoriesJson()
+    {
+        $categories = $this->faqCategoryModel->getActiveCategories();
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'data' => $categories
+        ]);
+    }
+
+    /**
+     * Sample FAQ data for when database is empty
+     * This provides fallback content during initial setup
+     */
+    private function getSampleFaqData(): array
+    {
+        return [
+            'umum' => [
+                'title' => 'Pertanyaan Umum',
+                'description' => 'Pertanyaan umum seputar layanan service laptop',
+                'faqs' => [
+                    [
+                        'id' => 0,
+                        'question' => 'Berapa lama waktu service laptop di Bandung?',
+                        'answer' => 'Waktu service bervariasi tergantung jenis kerusakan:<br>
+                        • Service ringan (cleaning, instalasi): 1-2 hari<br>
+                        • Ganti komponen (layar, keyboard): 2-3 hari<br>
+                        • Perbaikan motherboard: 3-7 hari<br>
+                        • Tergantung ketersediaan spare part',
+                        'category_name' => 'Pertanyaan Umum',
+                        'view_count' => 0
+                    ],
+                    [
+                        'id' => 0,
+                        'question' => 'Apakah ada garansi untuk service laptop?',
+                        'answer' => 'Ya, kami memberikan garansi resmi untuk setiap perbaikan:<br>
+                        • Garansi workmanship: 1-3 bulan<br>
+                        • Garansi spare part: sesuai garansi distributor<br>
+                        • Garansi tidak berlaku untuk kerusakan akibat benturan atau cairan',
+                        'category_name' => 'Pertanyaan Umum',
+                        'view_count' => 0
+                    ]
+                ]
+            ],
+            'service-laptop' => [
+                'title' => 'Service Laptop',
+                'description' => 'FAQ khusus service laptop',
+                'faqs' => [
+                    [
+                        'id' => 0,
+                        'question' => 'Laptop saya tidak mau nyala, apa penyebabnya?',
+                        'answer' => 'Laptop tidak nyala bisa disebabkan beberapa faktor:<br>
+                        • Adapter atau battery bermasalah<br>
+                        • Motherboard rusak<br>
+                        • RAM tidak terpasang dengan baik<br>
+                        • Short circuit akibat cairan<br>
+                        Perlu diagnosa lebih lanjut untuk memastikan penyebab pasti.',
+                        'category_name' => 'Service Laptop',
+                        'view_count' => 0
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Submit new FAQ question (from users)
+     */
+    public function submitQuestion()
+    {
+        if (!$this->request->isAJAX()) {
+            return redirect()->to('/faq');
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'name' => 'required|min_length[3]|max_length[100]',
+            'email' => 'required|valid_email',
+            'question' => 'required|min_length[10]|max_length[500]'
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'errors' => $validation->getErrors()
+            ]);
+        }
+
+        // Save question to database (you might want to create a separate table for user questions)
+        $data = [
+            'name' => $this->request->getPost('name'),
+            'email' => $this->request->getPost('email'),
+            'question' => $this->request->getPost('question'),
+            'ip_address' => $this->request->getIPAddress(),
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        // You can save to a 'user_questions' table or send via email
+        // For now, we'll just return success
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Pertanyaan Anda telah dikirim. Tim kami akan segera merespons.'
+        ]);
     }
 }

@@ -25,8 +25,10 @@
         <?php
         $allFaqs = [];
         foreach ($faqCategories as $category => $data) {
-            foreach ($data['faqs'] as $faq) {
-                $allFaqs[] = $faq;
+            if (isset($data['faqs'])) {
+                foreach ($data['faqs'] as $faq) {
+                    $allFaqs[] = $faq;
+                }
             }
         }
         ?>
@@ -78,18 +80,23 @@
 
                 <!-- Search FAQ -->
                 <div class="max-w-2xl mx-auto">
-                    <div class="relative">
-                        <input type="text" id="faq-search" placeholder="Cari pertanyaan..." class="w-full px-6 py-4 pr-12 rounded-lg text-gray-900 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                        <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
+                    <form action="/faq/search" method="GET" class="relative">
+                        <input type="text" name="q" id="faq-search" placeholder="Cari pertanyaan..."
+                               class="w-full px-6 py-4 pr-12 rounded-lg text-gray-900 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                               value="<?= old('q') ?>">
+                        <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ Categories Navigation -->
+    <!-- Categories Navigation -->
+<?php if (!empty($faqCategories)): ?>
     <section class="py-8 bg-white border-b border-gray-200">
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap justify-center gap-4">
@@ -104,36 +111,83 @@
             </div>
         </div>
     </section>
+<?php endif; ?>
 
     <!-- FAQ Content -->
     <section class="py-20 bg-gray-50">
         <div class="container mx-auto px-4">
             <div class="max-w-6xl mx-auto">
-                <?php foreach ($faqCategories as $categorySlug => $categoryData): ?>
-                    <div class="faq-category-content" data-category="<?= $categorySlug ?>">
-                        <div class="mb-12">
-                            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
-                                <?= $categoryData['title'] ?>
-                            </h2>
+                <?php if (!empty($faqCategories)): ?>
+                    <?php foreach ($faqCategories as $categorySlug => $categoryData): ?>
+                        <div class="faq-category-content" data-category="<?= $categorySlug ?>">
+                            <div class="mb-12">
+                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
+                                    <?= $categoryData['title'] ?>
+                                </h2>
 
-                            <div class="grid md:grid-cols-2 gap-6">
-                                <?php foreach ($categoryData['faqs'] as $index => $faq): ?>
-                                    <div class="faq-item bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                                        <button class="w-full px-8 py-6 text-left flex justify-between items-start hover:bg-gray-50 transition-colors duration-300 rounded-xl" onclick="toggleFAQ('<?= $categorySlug ?>-<?= $index ?>')">
-                                            <h3 class="text-lg font-semibold text-gray-900 pr-4 leading-relaxed"><?= $faq['question'] ?></h3>
-                                            <svg id="faq-icon-<?= $categorySlug ?>-<?= $index ?>" class="w-6 h-6 text-gray-500 transform transition-transform duration-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        <div id="faq-answer-<?= $categorySlug ?>-<?= $index ?>" class="hidden px-8 pb-6">
-                                            <div class="text-gray-600 leading-relaxed"><?= nl2br($faq['answer']) ?></div>
-                                        </div>
+                                <?php if (!empty($categoryData['faqs'])): ?>
+                                    <div class="grid md:grid-cols-2 gap-6">
+                                        <?php foreach ($categoryData['faqs'] as $index => $faq): ?>
+                                            <div class="faq-item bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                                                <button class="w-full px-8 py-6 text-left flex justify-between items-start hover:bg-gray-50 transition-colors duration-300 rounded-xl"
+                                                        onclick="toggleFAQ('<?= $categorySlug ?>-<?= $index ?>'); incrementView(<?= $faq['id'] ?? 0 ?>)">
+                                                    <h3 class="text-lg font-semibold text-gray-900 pr-4 leading-relaxed"><?= htmlspecialchars($faq['question']) ?></h3>
+                                                    <svg id="faq-icon-<?= $categorySlug ?>-<?= $index ?>" class="w-6 h-6 text-gray-500 transform transition-transform duration-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+                                                <div id="faq-answer-<?= $categorySlug ?>-<?= $index ?>" class="hidden px-8 pb-6">
+                                                    <div class="text-gray-600 leading-relaxed">
+                                                        <?= $faq['answer'] ?>
+                                                    </div>
+                                                    <?php if (isset($faq['view_count']) && $faq['view_count'] > 0): ?>
+                                                        <div class="mt-4 text-sm text-gray-400">
+                                                            <i class="fas fa-eye mr-1"></i>
+                                                            Dilihat <?= number_format($faq['view_count']) ?> kali
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="text-center py-8">
+                                        <p class="text-gray-500">Belum ada FAQ untuk kategori ini.</p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Empty State -->
+                    <div class="text-center py-12">
+                        <div class="mb-8">
+                            <svg class="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">FAQ Belum Tersedia</h3>
+                            <p class="text-gray-600 mb-6">Kami sedang menyiapkan kumpulan FAQ untuk membantu Anda.</p>
+                        </div>
+
+                        <!-- User Question Form -->
+                        <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Punya Pertanyaan?</h4>
+                            <form id="question-form">
+                                <div class="space-y-4">
+                                    <input type="text" name="name" placeholder="Nama Anda" required
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="email" name="email" placeholder="Email Anda" required
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <textarea name="question" placeholder="Pertanyaan Anda..." rows="3" required
+                                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors duration-300">
+                                        Kirim Pertanyaan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
 
                 <!-- No Results -->
                 <div id="no-results" class="hidden text-center py-12">
@@ -239,7 +293,10 @@
                 content.style.display = 'none';
             });
 
-            document.querySelector(`[data-category="${category}"]`).style.display = 'block';
+            const categoryContent = document.querySelector(`[data-category="${category}"]`);
+            if (categoryContent) {
+                categoryContent.style.display = 'block';
+            }
 
             document.querySelectorAll('.faq-category-btn').forEach(btn => {
                 btn.classList.remove('active', 'bg-blue-600', 'text-white');
@@ -263,6 +320,10 @@
                 return;
             }
 
+            if (searchTerm.length < 2) {
+                return;
+            }
+
             // Hide all categories first
             document.querySelectorAll('.faq-category-content').forEach(content => {
                 content.style.display = 'none';
@@ -271,7 +332,8 @@
             // Show matching items
             faqItems.forEach(item => {
                 const question = item.querySelector('h3').textContent.toLowerCase();
-                const answer = item.querySelector('.text-gray-600').textContent.toLowerCase();
+                const answerEl = item.querySelector('.text-gray-600');
+                const answer = answerEl ? answerEl.textContent.toLowerCase() : '';
 
                 if (question.includes(searchTerm) || answer.includes(searchTerm)) {
                     item.style.display = 'block';
@@ -296,8 +358,51 @@
             });
         });
 
-        // Initialize - show all FAQ by default
+        // Increment view count
+        function incrementView(faqId) {
+            if (faqId > 0) {
+                fetch(`/faq/increment-view/${faqId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(error => console.log('View count update failed:', error));
+            }
+        }
+
+        // User question form
         document.addEventListener('DOMContentLoaded', function() {
+            const questionForm = document.getElementById('question-form');
+            if (questionForm) {
+                questionForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+
+                    fetch('/faq/submit-question', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert(data.message);
+                                this.reset();
+                            } else {
+                                alert('Terjadi kesalahan. Silakan coba lagi.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Terjadi kesalahan. Silakan coba lagi.');
+                        });
+                });
+            }
+
+            // Initialize - show all FAQ by default
             showAllFAQ();
         });
     </script>

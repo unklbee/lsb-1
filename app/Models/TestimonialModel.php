@@ -19,7 +19,7 @@ class TestimonialModel extends Model
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 
-    public function getPublishedTestimonials()
+    public function getPublishedTestimonials(): array
     {
         return $this->where('is_published', 1)
             ->orderBy('sort_order', 'ASC')
@@ -27,7 +27,7 @@ class TestimonialModel extends Model
             ->findAll();
     }
 
-    public function getFeaturedTestimonials($limit = 6)
+    public function getFeaturedTestimonials($limit = 6): array
     {
         return $this->where(['is_published' => 1, 'is_featured' => 1])
             ->orderBy('sort_order', 'ASC')
@@ -35,7 +35,7 @@ class TestimonialModel extends Model
             ->findAll();
     }
 
-    public function getAverageRating()
+    public function getAverageRating(): array
     {
         $result = $this->select('AVG(rating) as avg_rating, COUNT(*) as total_reviews')
             ->where('is_published', 1)
