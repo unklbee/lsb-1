@@ -22,6 +22,7 @@ $routes->get('/testimonial', 'Testimonial::index');
 $routes->get('/tentang-kami', 'About::index');
 $routes->get('/kontak', 'Contact::index');
 $routes->post('/kontak/send', 'Contact::send');
+$routes->get('/login', 'Admin\Auth::login');
 
 // API Routes untuk structured data
 $routes->group('api', function($routes) {
