@@ -2,8 +2,10 @@
 
 namespace Config;
 
+use App\Filters\AdminAuthFilter;
+use App\Filters\CorsFilter;
+use App\Filters\ThrottleFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
-use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\ForceHTTPS;
@@ -25,15 +27,17 @@ class Filters extends BaseFilters
      * or [filter_name => [classname1, classname2, ...]]
      */
     public array $aliases = [
-        'csrf'          => CSRF::class,
-        'toolbar'       => DebugToolbar::class,
-        'honeypot'      => Honeypot::class,
-        'invalidchars'  => InvalidChars::class,
+        'csrf' => CSRF::class,
+        'toolbar' => DebugToolbar::class,
+        'honeypot' => Honeypot::class,
+        'invalidchars' => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'cors'          => Cors::class,
-        'forcehttps'    => ForceHTTPS::class,
-        'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+        'cors' => CorsFilter::class,
+        'forcehttps' => ForceHTTPS::class,
+        'pagecache' => PageCache::class,
+        'performance' => PerformanceMetrics::class,
+        'adminauth' => AdminAuthFilter::class,
+        'throttle' => ThrottleFilter::class,
     ];
 
     /**
@@ -69,13 +73,17 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+            'honeypot',
+            'csrf' => ['except' => [
+                'api/*',
+                'admin/api/*'
+            ]],
+            'invalidchars',
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'toolbar',
+            'honeypot',
+            'secureheaders',
         ],
     ];
 
@@ -103,5 +111,32 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'adminauth' => [
+            'before' => [
+                'admin/*',
+                'admin'
+            ],
+            'except' => [
+                'admin/login',
+                'admin/auth/login',
+                'admin/auth/authenticate',
+                'admin/auth/forgot-password',
+                'admin/auth/reset-password'
+            ]
+        ],
+        'throttle' => [
+            'before' => [
+                'admin/auth/authenticate',
+                'kontak/send',
+                'testimonial/submit',
+                'faq/submit-question'
+            ]
+        ],
+        'cors' => [
+            'before' => [
+                'api/*'
+            ]
+        ]
+    ];
 }
