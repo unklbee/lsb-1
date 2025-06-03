@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- TinyMCE for WYSIWYG editor -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="<?= base_url('assets/plugins/custom/tinymce/tinymce.bundle.js') ?>"></script>
 
     <style>
         .sidebar-active {

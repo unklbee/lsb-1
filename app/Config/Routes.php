@@ -127,6 +127,7 @@ $routes->group('admin', function ($routes) {
         $routes->get('categories/edit/(:num)', 'Admin\FaqCategories::edit/$1');
         $routes->post('categories/update/(:num)', 'Admin\FaqCategories::update/$1');
         $routes->delete('categories/delete/(:num)', 'Admin\FaqCategories::delete/$1');
+
     });
 
     // Testimonials Management
@@ -200,19 +201,25 @@ $routes->group('admin', function ($routes) {
     $routes->get('users/profile', 'Admin\Users::profile');
     $routes->post('users/update-profile', 'Admin\Users::updateProfile');
 
-    // Media Management
+    // Media Management Routes - CORRECTED VERSION
     $routes->group('media', function ($routes) {
         $routes->get('images', 'Admin\Media::images');
         $routes->get('upload', 'Admin\Media::upload');
         $routes->post('upload', 'Admin\Media::doUpload');
+        $routes->post('upload-image', 'Admin\Media::uploadImage');
+        $routes->get('serve/(:segment)', 'Admin\Media::serve/$1'); // NEW: Serve images from writable
         $routes->delete('delete/(:segment)', 'Admin\Media::delete/$1');
+        $routes->post('delete-image', 'Admin\Media::deleteImage'); // AJAX image delete
+        $routes->get('list', 'Admin\Media::getImages'); // Get image list
 
         // Additional Media Routes
         $routes->post('bulk-upload', 'Admin\Media::bulkUpload');
         $routes->post('bulk-delete', 'Admin\Media::bulkDelete');
         $routes->get('gallery', 'Admin\Media::gallery');
+        $routes->get('image-picker', 'Admin\Media::imagePicker'); // Image picker modal
         $routes->post('organize', 'Admin\Media::organize');
         $routes->get('stats', 'Admin\Media::getStats');
+        $routes->post('cleanup', 'Admin\Media::cleanup'); // Clean up unused images
     });
 
     // Analytics & Reports

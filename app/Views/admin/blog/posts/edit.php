@@ -67,6 +67,21 @@
                 </div>
             <?php endif; ?>
 
+            <!-- Error Messages -->
+            <?php if (session()->getFlashdata('errors')): ?>
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span class="font-medium">Terjadi kesalahan:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm">
+                        <?php foreach (session()->getFlashdata('errors') as $error): ?>
+                            <li><?= esc($error) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-6">
@@ -87,10 +102,6 @@
                         <div class="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-600">
                             <strong>URL saat ini:</strong> /blog/<?= $post['slug'] ?>
                         </div>
-
-                        <?php if (isset($validation) && $validation->hasError('title')): ?>
-                            <p class="mt-1 text-sm text-red-600"><?= $validation->getError('title') ?></p>
-                        <?php endif; ?>
                     </div>
 
                     <!-- Excerpt -->
@@ -110,10 +121,6 @@
                             <span>Ringkasan akan muncul di preview artikel dan deskripsi SEO</span>
                             <span id="excerpt-counter">0/300</span>
                         </div>
-
-                        <?php if (isset($validation) && $validation->hasError('excerpt')): ?>
-                            <p class="mt-1 text-sm text-red-600"><?= $validation->getError('excerpt') ?></p>
-                        <?php endif; ?>
                     </div>
 
                     <!-- Content -->
@@ -154,13 +161,6 @@
                             <button type="button" onclick="insertImage()" class="p-2 hover:bg-gray-200 rounded" title="Insert Image">
                                 <i class="fas fa-image"></i>
                             </button>
-                            <div class="border-l border-gray-300 mx-2"></div>
-                            <button type="button" onclick="undoChanges()" class="p-2 hover:bg-gray-200 rounded" title="Undo">
-                                <i class="fas fa-undo"></i>
-                            </button>
-                            <button type="button" onclick="redoChanges()" class="p-2 hover:bg-gray-200 rounded" title="Redo">
-                                <i class="fas fa-redo"></i>
-                            </button>
                         </div>
 
                         <textarea id="content"
@@ -174,10 +174,6 @@
                             <span id="word-counter">0 kata</span> •
                             <span id="reading-time">0 menit membaca</span>
                         </div>
-
-                        <?php if (isset($validation) && $validation->hasError('content')): ?>
-                            <p class="mt-1 text-sm text-red-600"><?= $validation->getError('content') ?></p>
-                        <?php endif; ?>
                     </div>
 
                     <!-- SEO Settings -->
@@ -259,34 +255,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Revision History -->
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
-                            <i class="fas fa-history mr-2 text-gray-600"></i>
-                            Riwayat Revisi
-                        </h3>
-
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div>
-                                    <p class="font-medium text-gray-900">Versi Saat Ini</p>
-                                    <p class="text-sm text-gray-600">Terakhir diupdate <?= date('d M Y H:i', strtotime($post['updated_at'])) ?></p>
-                                </div>
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Current</span>
-                            </div>
-
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div>
-                                    <p class="font-medium text-gray-900">Versi Awal</p>
-                                    <p class="text-sm text-gray-600">Dibuat <?= date('d M Y H:i', strtotime($post['created_at'])) ?></p>
-                                </div>
-                                <button type="button" class="text-blue-600 hover:text-blue-800 text-sm">
-                                    <i class="fas fa-eye mr-1"></i>Lihat
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Sidebar -->
@@ -325,10 +293,6 @@
                                     <i class="fas fa-plus mr-1"></i>
                                     Buat kategori baru
                                 </a>
-
-                                <?php if (isset($validation) && $validation->hasError('category_id')): ?>
-                                    <p class="mt-1 text-sm text-red-600"><?= $validation->getError('category_id') ?></p>
-                                <?php endif; ?>
                             </div>
 
                             <!-- Author -->
@@ -343,10 +307,6 @@
                                        placeholder="Nama penulis"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                        required>
-
-                                <?php if (isset($validation) && $validation->hasError('author')): ?>
-                                    <p class="mt-1 text-sm text-red-600"><?= $validation->getError('author') ?></p>
-                                <?php endif; ?>
                             </div>
 
                             <!-- Status -->
@@ -471,164 +431,55 @@
                                    id="featured_image"
                                    name="featured_image"
                                    value="<?= old('featured_image', esc($post['featured_image'])) ?>">
-
-                            <div class="mt-3">
-                                <label for="image_alt" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Alt Text (untuk SEO)
-                                </label>
-                                <input type="text"
-                                       id="image_alt"
-                                       name="image_alt"
-                                       value="<?= old('image_alt', '') ?>"
-                                       placeholder="Deskripsi gambar untuk accessibility"
-                                       class="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
                         </div>
+                    </div>
 
-                        <!-- Article Statistics -->
-                        <div class="bg-white rounded-lg shadow p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                                <i class="fas fa-chart-bar mr-2 text-purple-600"></i>
-                                Statistik Artikel
-                            </h3>
+                    <!-- Article Statistics -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                            <i class="fas fa-chart-bar mr-2 text-purple-600"></i>
+                            Statistik Artikel
+                        </h3>
 
-                            <div class="space-y-3">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Views</span>
+                                <span class="font-medium text-gray-900"><?= number_format($post['view_count'] ?? 0) ?></span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Reading Time</span>
+                                <span class="font-medium text-gray-900"><?= $post['reading_time'] ?? '5 menit' ?></span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Word Count</span>
+                                <span class="font-medium text-gray-900" id="current-word-count">
+                            <?= str_word_count(strip_tags($post['content'])) ?> kata
+                        </span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Status</span>
+                                <span class="font-medium <?= $post['is_published'] ? 'text-green-600' : 'text-yellow-600' ?>">
+                            <?= $post['is_published'] ? 'Published' : 'Draft' ?>
+                        </span>
+                            </div>
+
+                            <?php if ($post['is_featured']): ?>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600">Total Views</span>
-                                    <span class="font-medium text-gray-900"><?= number_format($post['view_count'] ?? 0) ?></span>
-                                </div>
-
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600">Reading Time</span>
-                                    <span class="font-medium text-gray-900"><?= $post['reading_time'] ?? '5 menit' ?></span>
-                                </div>
-
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600">Word Count</span>
-                                    <span class="font-medium text-gray-900" id="current-word-count">
-                                <?= str_word_count(strip_tags($post['content'])) ?> kata
+                                    <span class="text-sm text-gray-600">Featured</span>
+                                    <span class="font-medium text-yellow-600">
+                                <i class="fas fa-star mr-1"></i>Yes
                             </span>
                                 </div>
-
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600">Status</span>
-                                    <span class="font-medium <?= $post['is_published'] ? 'text-green-600' : 'text-yellow-600' ?>">
-                                <?= $post['is_published'] ? 'Published' : 'Draft' ?>
-                            </span>
-                                </div>
-
-                                <?php if ($post['is_featured']): ?>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-sm text-gray-600">Featured</span>
-                                        <span class="font-medium text-yellow-600">
-                                    <i class="fas fa-star mr-1"></i>Yes
-                                </span>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="bg-white rounded-lg shadow p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                                <i class="fas fa-bolt mr-2 text-yellow-600"></i>
-                                Aksi Cepat
-                            </h3>
-
-                            <div class="space-y-2">
-                                <button type="button"
-                                        onclick="previewPost()"
-                                        class="w-full px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
-                                    <i class="fas fa-eye mr-2"></i>
-                                    Preview Artikel
-                                </button>
-
-                                <button type="button"
-                                        onclick="duplicatePost()"
-                                        class="w-full px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors duration-200 text-sm">
-                                    <i class="fas fa-copy mr-2"></i>
-                                    Duplikat Artikel
-                                </button>
-
-                                <button type="button"
-                                        onclick="showSEOAnalysis()"
-                                        class="w-full px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm">
-                                    <i class="fas fa-chart-line mr-2"></i>
-                                    Analisis SEO
-                                </button>
-
-                                <?php if ($post['is_published']): ?>
-                                    <button type="button"
-                                            onclick="shareArticle()"
-                                            class="w-full px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors duration-200 text-sm">
-                                        <i class="fas fa-share mr-2"></i>
-                                        Share Artikel
-                                    </button>
-                                <?php endif; ?>
-
-                                <button type="button"
-                                        onclick="deletePost()"
-                                        class="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors duration-200 text-sm">
-                                    <i class="fas fa-trash mr-2"></i>
-                                    Hapus Artikel
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- SEO Score -->
-                        <div class="bg-white rounded-lg shadow p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                                <i class="fas fa-search mr-2 text-blue-600"></i>
-                                SEO Score
-                            </h3>
-
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-gray-400" id="seo-score">--</div>
-                                <p class="text-sm text-gray-500 mb-4">SEO Score</p>
-
-                                <div id="seo-checklist" class="text-left space-y-2 text-sm">
-                                    <div class="flex items-center text-gray-400">
-                                        <i class="fas fa-circle text-xs mr-2"></i>
-                                        <span>Judul optimal (50-60 karakter)</span>
-                                    </div>
-                                    <div class="flex items-center text-gray-400">
-                                        <i class="fas fa-circle text-xs mr-2"></i>
-                                        <span>Meta description (150-160 karakter)</span>
-                                    </div>
-                                    <div class="flex items-center text-gray-400">
-                                        <i class="fas fa-circle text-xs mr-2"></i>
-                                        <span>Gambar utama tersedia</span>
-                                    </div>
-                                    <div class="flex items-center text-gray-400">
-                                        <i class="fas fa-circle text-xs mr-2"></i>
-                                        <span>Konten minimal 300 kata</span>
-                                    </div>
-                                    <div class="flex items-center text-gray-400">
-                                        <i class="fas fa-circle text-xs mr-2"></i>
-                                        <span>Heading struktur (H2, H3)</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
-    </form>
-
-    <!-- Preview Modal -->
-    <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-auto">
-            <div class="flex justify-between items-center p-6 border-b">
-                <h3 class="text-lg font-medium">Preview Artikel</h3>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div id="preview-content" class="p-6">
-                <!-- Preview content will be loaded here -->
-            </div>
         </div>
-    </div>
+    </form>
 
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -669,7 +520,6 @@
 
 <?= $this->section('javascript') ?>
     <script>
-        // Include all the JavaScript from the create page
         // Character counters
         function updateCounter(inputId, counterId, maxLength) {
             const input = document.getElementById(inputId);
@@ -716,9 +566,6 @@
                 content.addEventListener('input', updateWordCount);
                 updateWordCount();
             }
-
-            // Initialize SEO scoring
-            initSEOScoring();
         });
 
         // Word count and reading time
@@ -733,51 +580,7 @@
             document.getElementById('current-word-count').textContent = `${wordCount} kata`;
         }
 
-        // Image upload handling (same as create page)
-        function handleImageUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // Validate file size (2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file terlalu besar. Maksimal 2MB.');
-                return;
-            }
-
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                alert('File harus berupa gambar.');
-                return;
-            }
-
-            // Create preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('preview-img').src = e.target.result;
-                document.getElementById('image-placeholder').classList.add('hidden');
-                document.getElementById('image-preview').classList.remove('hidden');
-
-                // Set the image path (in real implementation, you'd upload to server first)
-                document.getElementById('featured_image').value = 'path/to/uploaded/image.jpg';
-
-                updateSEOScore();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function changeImage() {
-            document.getElementById('featured_image_file').click();
-        }
-
-        function removeImage() {
-            document.getElementById('featured_image').value = '';
-            document.getElementById('image-placeholder').classList.remove('hidden');
-            document.getElementById('image-preview').classList.add('hidden');
-            document.getElementById('featured_image_file').value = '';
-            updateSEOScore();
-        }
-
-        // Text formatting functions (same as create page)
+        // Text formatting functions
         function formatText(command) {
             const textarea = document.getElementById('content');
             const start = textarea.selectionStart;
@@ -851,115 +654,104 @@
             }
         }
 
-        // Undo/Redo functionality
-        let contentHistory = [];
-        let historyIndex = -1;
+        // Image handling - FIXED VERSION
+        function handleImageUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
 
-        function saveToHistory() {
-            const content = document.getElementById('content').value;
-            contentHistory = contentHistory.slice(0, historyIndex + 1);
-            contentHistory.push(content);
-            historyIndex = contentHistory.length - 1;
-
-            // Limit history to 50 entries
-            if (contentHistory.length > 50) {
-                contentHistory.shift();
-                historyIndex--;
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran file terlalu besar. Maksimal 2MB.');
+                input.value = ''; // Reset input
+                return;
             }
-        }
 
-        function undoChanges() {
-            if (historyIndex > 0) {
-                historyIndex--;
-                document.getElementById('content').value = contentHistory[historyIndex];
-                updateWordCount();
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar.');
+                input.value = ''; // Reset input
+                return;
             }
-        }
 
-        function redoChanges() {
-            if (historyIndex < contentHistory.length - 1) {
-                historyIndex++;
-                document.getElementById('content').value = contentHistory[historyIndex];
-                updateWordCount();
-            }
-        }
+            // Show loading while uploading
+            const uploadArea = document.getElementById('image-upload-area');
+            const originalContent = uploadArea.innerHTML;
 
-        // SEO Scoring (same as create page but updated for edit)
-        function initSEOScoring() {
-            const inputs = ['title', 'excerpt', 'meta_title', 'meta_description', 'content'];
-            inputs.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.addEventListener('input', updateSEOScore);
+            uploadArea.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                    <p class="text-gray-600">Mengupload gambar...</p>
+                </div>
+            `;
+
+            // Create FormData for upload
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+
+            // Upload image to server
+            fetch('/admin/media/upload-image', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-            });
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success - show preview with real image URL
+                        uploadArea.innerHTML = `
+                        <div id="image-preview">
+                            <img id="preview-img"
+                                 src="${data.image_url}"
+                                 alt="Preview"
+                                 class="max-w-full h-auto rounded-lg mb-3">
+                            <div class="flex justify-center space-x-2">
+                                <button type="button"
+                                        onclick="changeImage()"
+                                        class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700">
+                                    Ganti
+                                </button>
+                                <button type="button"
+                                        onclick="removeImage()"
+                                        class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                    `;
 
-            updateSEOScore();
+                        // Set the real image path
+                        document.getElementById('featured_image').value = data.image_url;
+
+                    } else {
+                        // Error - restore original content and show error
+                        uploadArea.innerHTML = originalContent;
+                        alert('Gagal mengupload gambar: ' + (data.message || 'Error tidak diketahui'));
+                    }
+                })
+                .catch(error => {
+                    // Network error - restore original content
+                    uploadArea.innerHTML = originalContent;
+                    alert('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.');
+                    console.error('Upload error:', error);
+                })
+                .finally(() => {
+                    // Reset file input
+                    input.value = '';
+                });
         }
 
-        function updateSEOScore() {
-            const title = document.getElementById('title').value;
-            const metaTitle = document.getElementById('meta_title').value;
-            const metaDesc = document.getElementById('meta_description').value;
-            const content = document.getElementById('content').value;
-            const featuredImage = document.getElementById('featured_image').value;
+        function changeImage() {
+            document.getElementById('featured_image_file').click();
+        }
 
-            let score = 0;
-            const checks = document.querySelectorAll('#seo-checklist .fas');
-
-            // Title length (50-60 chars)
-            if ((metaTitle || title).length >= 50 && (metaTitle || title).length <= 60) {
-                score += 20;
-                checks[0].className = 'fas fa-check-circle text-green-500 text-xs mr-2';
-            } else {
-                checks[0].className = 'fas fa-circle text-gray-400 text-xs mr-2';
-            }
-
-            // Meta description (150-160 chars)
-            if (metaDesc.length >= 150 && metaDesc.length <= 160) {
-                score += 20;
-                checks[1].className = 'fas fa-check-circle text-green-500 text-xs mr-2';
-            } else {
-                checks[1].className = 'fas fa-circle text-gray-400 text-xs mr-2';
-            }
-
-            // Featured image
-            if (featuredImage) {
-                score += 20;
-                checks[2].className = 'fas fa-check-circle text-green-500 text-xs mr-2';
-            } else {
-                checks[2].className = 'fas fa-circle text-gray-400 text-xs mr-2';
-            }
-
-            // Content length (min 300 words)
-            const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
-            if (wordCount >= 300) {
-                score += 20;
-                checks[3].className = 'fas fa-check-circle text-green-500 text-xs mr-2';
-            } else {
-                checks[3].className = 'fas fa-circle text-gray-400 text-xs mr-2';
-            }
-
-            // Heading structure (has H2 or H3)
-            if (content.includes('## ') || content.includes('### ')) {
-                score += 20;
-                checks[4].className = 'fas fa-check-circle text-green-500 text-xs mr-2';
-            } else {
-                checks[4].className = 'fas fa-circle text-gray-400 text-xs mr-2';
-            }
-
-            // Update score display
-            const scoreElement = document.getElementById('seo-score');
-            scoreElement.textContent = score;
-
-            // Color coding
-            if (score >= 80) {
-                scoreElement.className = 'text-3xl font-bold text-green-600';
-            } else if (score >= 60) {
-                scoreElement.className = 'text-3xl font-bold text-yellow-600';
-            } else {
-                scoreElement.className = 'text-3xl font-bold text-red-600';
-            }
+        function removeImage() {
+            document.getElementById('featured_image').value = '';
+            document.getElementById('image-placeholder').classList.remove('hidden');
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('featured_image_file').value = '';
         }
 
         // Save as draft
@@ -969,165 +761,6 @@
 
             // Submit form
             document.getElementById('post-form').submit();
-        }
-
-        // Preview functionality
-        function previewPost() {
-            const title = document.getElementById('title').value;
-            const excerpt = document.getElementById('excerpt').value;
-            const content = document.getElementById('content').value;
-            const author = document.getElementById('author').value;
-            const featuredImage = document.getElementById('featured_image').value;
-
-            if (!title || !content) {
-                alert('Judul dan konten harus diisi untuk preview');
-                return;
-            }
-
-            // Create preview content
-            const previewHTML = `
-        <article class="max-w-4xl mx-auto">
-            ${featuredImage ? `<img src="${featuredImage}" alt="${title}" class="w-full h-64 object-cover rounded-lg mb-6">` : ''}
-            <header class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">${title}</h1>
-                <div class="flex items-center text-gray-600 text-sm">
-                    <span>Oleh ${author}</span>
-                    <span class="mx-2">•</span>
-                    <span><?= date('d M Y', strtotime($post['updated_at'])) ?></span>
-                    <span class="mx-2">•</span>
-                    <span>${Math.ceil(content.split(' ').length / 200)} menit membaca</span>
-                </div>
-            </header>
-
-            ${excerpt ? `<div class="text-lg text-gray-700 mb-6 italic">${excerpt}</div>` : ''}
-
-            <div class="prose prose-lg max-w-none">
-                ${formatContentForPreview(content)}
-            </div>
-        </article>
-    `;
-
-            document.getElementById('preview-content').innerHTML = previewHTML;
-            document.getElementById('preview-modal').classList.remove('hidden');
-        }
-
-        function closePreview() {
-            document.getElementById('preview-modal').classList.add('hidden');
-        }
-
-        function formatContentForPreview(content) {
-            // Basic markdown to HTML conversion for preview
-            return content
-                .replace(/### (.*$)/gm, '<h3>$1</h3>')
-                .replace(/## (.*$)/gm, '<h2>$1</h2>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:underline">$1</a>')
-                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-4">')
-                .replace(/^\- (.*$)/gm, '<li>$1</li>')
-                .replace(/^(\d+)\. (.*$)/gm, '<li>$1</li>')
-                .replace(/\n/g, '<br>');
-        }
-
-        // Duplicate post
-        function duplicatePost() {
-            if (!confirm('Duplikat artikel ini? Akan dibuat copy dengan status draft.')) return;
-
-            showLoading();
-
-            fetch(`/admin/blog/posts/duplicate/<?= $post['id'] ?>`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    if (data.success) {
-                        window.location.href = `/admin/blog/posts/edit/${data.new_post_id}`;
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    alert('Terjadi kesalahan: ' + error);
-                });
-        }
-
-        // SEO Analysis Modal
-        function showSEOAnalysis() {
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-            const metaDesc = document.getElementById('meta_description').value;
-
-            if (!title || !content) {
-                alert('Judul dan konten harus diisi untuk analisis SEO');
-                return;
-            }
-
-            // Simple SEO analysis
-            const analysis = {
-                titleLength: title.length,
-                contentWordCount: content.split(' ').length,
-                metaDescLength: metaDesc.length,
-                hasHeadings: /##/.test(content),
-                hasImages: /!\[/.test(content),
-                hasLinks: /\[.*\]\(.*\)/.test(content)
-            };
-
-            const recommendations = [];
-
-            if (analysis.titleLength < 50) {
-                recommendations.push('Judul terlalu pendek. Sebaiknya 50-60 karakter.');
-            } else if (analysis.titleLength > 60) {
-                recommendations.push('Judul terlalu panjang. Sebaiknya 50-60 karakter.');
-            }
-
-            if (analysis.contentWordCount < 300) {
-                recommendations.push('Konten terlalu pendek. Minimal 300 kata untuk SEO yang baik.');
-            }
-
-            if (analysis.metaDescLength < 150) {
-                recommendations.push('Meta description terlalu pendek. Sebaiknya 150-160 karakter.');
-            }
-
-            if (!analysis.hasHeadings) {
-                recommendations.push('Tambahkan heading (H2, H3) untuk struktur konten yang lebih baik.');
-            }
-
-            if (!analysis.hasImages) {
-                recommendations.push('Tambahkan gambar untuk meningkatkan engagement.');
-            }
-
-            if (!analysis.hasLinks) {
-                recommendations.push('Tambahkan link internal/eksternal yang relevan.');
-            }
-
-            const recommendationHTML = recommendations.length > 0
-                ? recommendations.map(rec => `<li class="text-sm text-gray-600">${rec}</li>`).join('')
-                : '<li class="text-sm text-green-600">SEO artikel sudah optimal!</li>';
-
-            alert('Analisis SEO:\n\n' + recommendations.join('\n\n'));
-        }
-
-        // Share article functionality
-        function shareArticle() {
-            const title = document.getElementById('title').value;
-            const url = `<?= base_url('/blog/' . $post['slug']) ?>`;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    url: url
-                });
-            } else {
-                // Fallback to copy URL
-                navigator.clipboard.writeText(url).then(() => {
-                    alert('URL artikel berhasil disalin ke clipboard!');
-                });
-            }
         }
 
         // Delete post functionality
@@ -1164,6 +797,93 @@
                 });
         }
 
+        // Enhanced form submission handler - FIXED VERSION
+        document.getElementById('post-form').addEventListener('submit', function(e) {
+            console.log('Form submission triggered');
+
+            // Stop auto-save during submission
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+
+            const isPublishing = document.querySelector('input[name="is_published"]:checked')?.value === '1';
+
+            if (isPublishing) {
+                // Validation for publishing
+                const title = document.getElementById('title').value.trim();
+                const excerpt = document.getElementById('excerpt').value.trim();
+                const content = document.getElementById('content').value.trim();
+                const category = document.getElementById('category_id').value;
+
+                console.log('Validation check:', { title: !!title, excerpt: !!excerpt, content: !!content, category: !!category });
+
+                if (!title || !excerpt || !content || !category) {
+                    e.preventDefault();
+                    alert('Semua field wajib harus diisi untuk publikasi');
+                    // Restart auto-save
+                    setTimeout(() => startAutoSave(), 1000);
+                    return false;
+                }
+
+                if (content.split(' ').length < 100) {
+                    if (!confirm('Konten artikel masih pendek (kurang dari 100 kata). Yakin ingin publikasi?')) {
+                        e.preventDefault();
+                        // Restart auto-save
+                        setTimeout(() => startAutoSave(), 1000);
+                        return false;
+                    }
+                }
+            }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+
+            // Show loading
+            console.log('Showing loading for form submission');
+            showLoading();
+
+            // Add hidden field to track submission
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'form_submitted';
+            hiddenInput.value = '1';
+            this.appendChild(hiddenInput);
+
+            // Shorter timeout for better UX
+            const timeoutId = setTimeout(() => {
+                const spinner = document.getElementById('loading-spinner');
+                if (spinner && !spinner.classList.contains('hidden')) {
+                    console.warn('Form submission timeout, but continuing...');
+                    hideLoading();
+
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+
+                    // Show timeout message but don't stop the form
+                    alert('Proses update memakan waktu lebih lama dari biasanya. Mohon tunggu...');
+
+                    // Check if actually submitted by trying to navigate away
+                    setTimeout(() => {
+                        if (confirm('Masih dalam proses. Apakah ingin refresh halaman untuk melihat status terbaru?')) {
+                            window.location.reload();
+                        }
+                    }, 5000);
+                }
+            }, 10000); // 10 seconds timeout
+
+            // Clear timeout if form actually submits
+            this.addEventListener('beforesubmit', () => {
+                clearTimeout(timeoutId);
+            });
+
+            // Don't prevent default - let form submit normally
+            return true;
+        });
+
         // Auto-save functionality (setiap 60 detik untuk edit mode)
         let autoSaveInterval;
 
@@ -1173,7 +893,6 @@
                 const content = document.getElementById('content').value;
 
                 if (title && content) {
-                    // Auto-save via AJAX dengan proper error handling
                     autoSavePost();
                 }
             }, 60000); // 60 seconds
@@ -1185,12 +904,6 @@
 
             const formData = new FormData(form);
             formData.append('auto_save', '1');
-
-            // Add CSRF token manually
-            const csrfToken = document.querySelector('input[name="csrf_test_name"]');
-            if (csrfToken) {
-                formData.append('csrf_test_name', csrfToken.value);
-            }
 
             fetch(`/admin/blog/posts/auto-save/<?= $post['id'] ?>`, {
                 method: 'POST',
@@ -1215,7 +928,6 @@
                 })
                 .catch(error => {
                     console.warn('Auto-save failed:', error);
-                    // Don't show error to user for auto-save failures
                 });
         }
 
@@ -1231,151 +943,12 @@
             }, 2000);
         }
 
-        // Initialize content history for undo/redo
-        function initContentHistory() {
-            const content = document.getElementById('content').value;
-            contentHistory = [content];
-            historyIndex = 0;
-
-            // Save to history on content change
-            document.getElementById('content').addEventListener('input', function() {
-                clearTimeout(this.saveTimeout);
-                this.saveTimeout = setTimeout(() => {
-                    saveToHistory();
-                }, 1000);
-            });
-        }
-
-        // Enhanced form submission handler with better error handling
-        document.getElementById('post-form').addEventListener('submit', function(e) {
-            console.log('Form submission triggered');
-
-            // Stop auto-save during submission
-            if (autoSaveInterval) {
-                clearInterval(autoSaveInterval);
-            }
-
-            const isPublishing = document.querySelector('input[name="is_published"]:checked')?.value === '1';
-
-            if (isPublishing) {
-                // Validation for publishing
-                const title = document.getElementById('title').value;
-                const excerpt = document.getElementById('excerpt').value;
-                const content = document.getElementById('content').value;
-                const category = document.getElementById('category_id').value;
-
-                console.log('Validation check:', { title: !!title, excerpt: !!excerpt, content: !!content, category: !!category });
-
-                if (!title || !excerpt || !content || !category) {
-                    e.preventDefault();
-                    alert('Semua field wajib harus diisi untuk publikasi');
-                    // Restart auto-save
-                    startAutoSave();
-                    return;
-                }
-
-                if (content.split(' ').length < 100) {
-                    e.preventDefault();
-                    if (!confirm('Konten artikel masih pendek. Yakin ingin publikasi?')) {
-                        // Restart auto-save
-                        startAutoSave();
-                        return;
-                    }
-                }
-            }
-
-            // Mark as no unsaved changes
-            hasUnsavedChanges = false;
-
-            // Show loading with shorter timeout for form submission
-            console.log('Showing loading for form submission');
-            showLoadingWithTimeout();
-
-            // Debug form data
-            const formData = new FormData(this);
-            console.log('Form action:', this.action);
-            console.log('Form method:', this.method);
-
-            // Shorter timeout for form submission
-            setTimeout(() => {
-                const spinner = document.getElementById('loading-spinner');
-                if (spinner && !spinner.classList.contains('hidden')) {
-                    console.warn('Form submission timeout, hiding loading');
-                    hideLoadingWithTimeout();
-                    alert('Proses update memakan waktu lama. Halaman akan di-refresh.');
-                    // Auto refresh page
-                    window.location.reload();
-                }
-            }, 10000); // Reduced to 10 seconds
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 's':
-                        e.preventDefault();
-                        document.getElementById('post-form').submit();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        previewPost();
-                        break;
-                    case 'z':
-                        if (!e.shiftKey) {
-                            e.preventDefault();
-                            undoChanges();
-                        } else {
-                            e.preventDefault();
-                            redoChanges();
-                        }
-                        break;
-                    case 'y':
-                        e.preventDefault();
-                        redoChanges();
-                        break;
-                }
-            }
-        });
-
-        // Warn about unsaved changes
-        let hasUnsavedChanges = false;
-
-        function trackChanges() {
-            const inputs = document.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.addEventListener('change', () => {
-                    hasUnsavedChanges = true;
-                });
-            });
-        }
-
-        window.addEventListener('beforeunload', function(e) {
-            if (hasUnsavedChanges) {
-                e.preventDefault();
-                e.returnValue = '';
-                return 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
-            }
-        });
-
-        // Initialize everything when DOM is loaded
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize content history first
-            initContentHistory();
-
-            // Start auto-save with delay to avoid immediate conflicts
+            // Start auto-save after delay
             setTimeout(() => {
                 startAutoSave();
-            }, 5000); // Start auto-save after 5 seconds
-
-            trackChanges();
-
-            // Show keyboard shortcuts help
-            console.log('Keyboard shortcuts:');
-            console.log('Ctrl+S: Save');
-            console.log('Ctrl+P: Preview');
-            console.log('Ctrl+Z: Undo');
-            console.log('Ctrl+Shift+Z / Ctrl+Y: Redo');
+            }, 5000);
         });
 
         // Cleanup on page unload
@@ -1383,11 +956,6 @@
             if (autoSaveInterval) {
                 clearInterval(autoSaveInterval);
             }
-        });
-
-        // Mark as saved when form is submitted
-        document.getElementById('post-form').addEventListener('submit', function() {
-            hasUnsavedChanges = false;
         });
     </script>
 <?= $this->endSection() ?>

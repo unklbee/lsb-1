@@ -1,6 +1,6 @@
 <?php
 
-// app/Controllers/Admin/BlogPosts.php
+// app/Controllers/Admin/BlogPosts.php - FIXED VERSION
 
 namespace App\Controllers\Admin;
 
@@ -9,11 +9,12 @@ use App\Models\BlogPostModel;
 use App\Models\BlogCategoryModel;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\Database;
 
 class BlogPosts extends BaseController
 {
-    protected $blogPostModel;
-    protected $categoryModel;
+    protected BlogPostModel $blogPostModel;
+    protected BlogCategoryModel $categoryModel;
 
     public function __construct()
     {
@@ -21,7 +22,7 @@ class BlogPosts extends BaseController
         $this->categoryModel = new BlogCategoryModel();
     }
 
-    public function index()
+    public function index(): string
     {
         $this->checkAuth();
 
@@ -39,7 +40,7 @@ class BlogPosts extends BaseController
         return view('admin/blog/posts/index', $data);
     }
 
-    public function create()
+    public function create(): string
     {
         $this->checkAuth();
 
@@ -99,7 +100,7 @@ class BlogPosts extends BaseController
         }
     }
 
-    public function edit($id)
+    public function edit($id): string|RedirectResponse
     {
         $this->checkAuth();
 
@@ -124,11 +125,18 @@ class BlogPosts extends BaseController
     {
         $this->checkAuth();
 
+        // Debug: Log the incoming request
+        log_message('info', 'Blog post update request received for ID: ' . $id);
+        log_message('info', 'POST data: ' . json_encode($this->request->getPost()));
+
+        // Check if post exists first
         $post = $this->blogPostModel->find($id);
         if (!$post) {
+            log_message('error', 'Blog post not found for ID: ' . $id);
             return redirect()->to('/admin/blog/posts')->with('error', 'Artikel tidak ditemukan');
         }
 
+        // Validation rules
         $validation = \Config\Services::validation();
         $validation->setRules([
             'title' => 'required|max_length[255]',
@@ -136,42 +144,107 @@ class BlogPosts extends BaseController
             'excerpt' => 'required',
             'content' => 'required',
             'author' => 'required|max_length[255]'
+        ], [
+            'title' => [
+                'required' => 'Judul artikel wajib diisi',
+                'max_length' => 'Judul maksimal 255 karakter'
+            ],
+            'category_id' => [
+                'required' => 'Kategori wajib dipilih',
+                'integer' => 'Kategori tidak valid'
+            ],
+            'excerpt' => [
+                'required' => 'Ringkasan artikel wajib diisi'
+            ],
+            'content' => [
+                'required' => 'Konten artikel wajib diisi'
+            ],
+            'author' => [
+                'required' => 'Nama penulis wajib diisi',
+                'max_length' => 'Nama penulis maksimal 255 karakter'
+            ]
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
+            log_message('error', 'Blog update validation failed: ' . json_encode($validation->getErrors()));
             return redirect()->back()->withInput()->with('errors', $validation->getErrors());
         }
 
-        // Calculate reading time
-        $content = $this->request->getPost('content');
-        $wordCount = str_word_count(strip_tags($content));
-        $readingTime = ceil($wordCount / 200) . ' menit';
-
-        $data = [
-            'category_id' => $this->request->getPost('category_id'),
-            'title' => $this->request->getPost('title'),
-            'slug' => $this->request->getPost('slug') ?: url_title(strtolower($this->request->getPost('title')), '-', true),
-            'excerpt' => $this->request->getPost('excerpt'),
-            'content' => $content,
-            'featured_image' => $this->request->getPost('featured_image'),
-            'author' => $this->request->getPost('author'),
-            'reading_time' => $readingTime,
-            'meta_title' => $this->request->getPost('meta_title'),
-            'meta_description' => $this->request->getPost('meta_description'),
-            'meta_keywords' => $this->request->getPost('meta_keywords'),
-            'is_featured' => $this->request->getPost('is_featured') ? 1 : 0,
-            'is_published' => $this->request->getPost('is_published') ? 1 : 0,
-        ];
-
         try {
-            if ($this->blogPostModel->update($id, $data)) {
-                return redirect()->to('/admin/blog/posts')->with('success', 'Artikel berhasil diupdate');
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Gagal mengupdate artikel');
+            // Get post data from request
+            $title = trim($this->request->getPost('title'));
+            $content = trim($this->request->getPost('content'));
+
+            // Calculate reading time
+            $wordCount = str_word_count(strip_tags($content));
+            $readingTime = ceil($wordCount / 200) . ' menit';
+
+            // Prepare update data
+            $updateData = [
+                'category_id' => (int) $this->request->getPost('category_id'),
+                'title' => $title,
+                'excerpt' => trim($this->request->getPost('excerpt')),
+                'content' => $content,
+                'author' => trim($this->request->getPost('author')),
+                'reading_time' => $readingTime,
+                'meta_title' => $this->request->getPost('meta_title') ?: null,
+                'meta_description' => $this->request->getPost('meta_description') ?: null,
+                'meta_keywords' => $this->request->getPost('meta_keywords') ?: null,
+                'featured_image' => $this->request->getPost('featured_image') ?: null,
+                'is_featured' => $this->request->getPost('is_featured') ? 1 : 0,
+                'is_published' => $this->request->getPost('is_published') ? 1 : 0,
+            ];
+
+            // Handle slug - only update if provided or if title changed
+            $providedSlug = trim($this->request->getPost('slug'));
+            if ($providedSlug) {
+                $updateData['slug'] = $providedSlug;
+            } elseif ($post['title'] !== $title) {
+                // Generate new slug only if title changed and no custom slug provided
+                $newSlug = url_title(strtolower($title), '-', true);
+                // Make sure slug is unique
+                $slugCount = $this->blogPostModel->where('slug', $newSlug)->where('id !=', $id)->countAllResults();
+                if ($slugCount > 0) {
+                    $newSlug .= '-' . time();
+                }
+                $updateData['slug'] = $newSlug;
             }
+
+            // Set published_at if publishing for the first time
+            if ($updateData['is_published'] == 1 && !$post['published_at']) {
+                $updateData['published_at'] = date('Y-m-d H:i:s');
+            }
+
+            // Log the update attempt
+            log_message('info', 'Attempting to update blog post ID: ' . $id . ' with data: ' . json_encode($updateData) . ' by user: ' . (session()->get('admin_user')['email'] ?? 'unknown'));
+
+            // Perform the update with explicit transaction
+            $db = Database::connect();
+            $db->transStart();
+
+            $updateResult = $this->blogPostModel->update($id, $updateData);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false || !$updateResult) {
+                // Transaction failed
+                $modelErrors = $this->blogPostModel->errors();
+                log_message('error', 'Blog post update failed - Transaction error or model update failed. Model errors: ' . json_encode($modelErrors));
+
+                return redirect()->back()->withInput()->with('error', 'Gagal mengupdate artikel. ' . (is_array($modelErrors) && !empty($modelErrors) ? implode(', ', $modelErrors) : 'Database error.'));
+            }
+
+            // Success
+            log_message('info', 'Blog post updated successfully: ID ' . $id);
+
+            // Clear any session errors
+            session()->remove('errors');
+
+            return redirect()->to('/admin/blog/posts')->with('success', 'Artikel berhasil diupdate');
+
         } catch (\Exception $e) {
-            log_message('error', 'Update post error: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            log_message('error', 'Blog post update exception: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
 
@@ -366,7 +439,7 @@ class BlogPosts extends BaseController
     }
 
     /**
-     * Auto-save post (for edit mode) - Enhanced version
+     * Auto-save post (for edit mode) - FIXED VERSION
      */
     public function autoSave($id)
     {
